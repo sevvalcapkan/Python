@@ -1,0 +1,58 @@
+import csv
+
+
+def delta(player_1, player_2):
+    return 1 / (1 + 2 ** ((player_1 - player_2) / 100))
+
+def update_selos(players, games):
+    for game in games:
+        player_a = game['PLAYER A']
+        player_b = game['PLAYER B']
+        result = game['RESULT']
+        if player_a not in players:
+            players[player_a] = 1500
+        if player_b not in players:
+            players[player_b] = 1500
+        selo_a = players[player_a]
+        selo_b = players[player_b]
+        if result == '1-0':
+            selo_delta = 200 * delta(selo_a, selo_b)
+            players[player_a] = round(selo_a + selo_delta)
+            players[player_b] = round(selo_b - selo_delta)
+        elif result == '0-1':
+            selo_delta = 200 * delta(selo_b, selo_a)
+            players[player_a] = round(selo_a - selo_delta)
+            players[player_b] = round(selo_b + selo_delta)
+def display_players(players):
+    sorted_players = sorted(players.items(), key=lambda x: x[1], reverse=True)
+    for player, selo in sorted_players:
+        print(f"{player}: {selo}")
+def main():
+    players = {}
+    games = []
+    try:
+        with open('players.csv', 'r') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                player = row['PLAYER']
+                selo = int(row['SELO'])
+                players[player] = selo
+    except FileNotFoundError:
+        print("Error: players.csv file not found.")
+        return
+    try:
+        with open('games.csv', 'r') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                games.append(row)
+    except FileNotFoundError:
+        print("Error: games.csv file not found.")
+        return
+
+    update_selos(players, games)
+
+    display_players(players)
+
+if __name__ == '__main__':
+    main()
+
